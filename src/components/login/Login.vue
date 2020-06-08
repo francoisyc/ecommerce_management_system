@@ -52,6 +52,7 @@ export default {
           console.log(data, meta);
           if (meta.status === 200) {
             alert("登录成功");
+            localStorage.setItem('token',data.token)
             this.$router.push("/home");
           } else {
             this.$message({
