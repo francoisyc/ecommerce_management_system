@@ -21,6 +21,7 @@ axios.interceptors.request.use(function(config){
 })
 
 axios.interceptors.response.use(function(response){
+    
     if(response.data.meta.status === 401){
       router.push('/login')
       localStorage.removeItem('token')

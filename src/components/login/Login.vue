@@ -1,28 +1,59 @@
 <template>
   <div class="login-wrapper">
-    <el-row type="flex" class="loginForm" justify="center" align="middle">
-      <el-col :xs="12" :sm="10" :md="8" :lg="6" :xl="4" class="login-content">
-       <el-form :model="loginForm" :rules="rules"  ref="loginForm" label-width="100px"  label-position="top">
-      <el-form-item label="用户名" prop="username">
-        <el-input v-model="loginForm.username"></el-input>
-      </el-form-item>
-      <el-form-item label="密码" prop="password">
-        <el-input v-model="loginForm.password" show-password></el-input>
-      </el-form-item>
+    <el-row
+      type="flex"
+      class="loginForm"
+      justify="center"
+      align="middle"
+    >
+      <el-col
+        :xs="12"
+        :sm="10"
+        :md="8"
+        :lg="6"
+        :xl="4"
+        class="login-content"
+      >
+        <el-form
+          :model="loginForm"
+          :rules="rules"
+          ref="loginForm"
+          label-width="100px"
+          label-position="top"
+        >
+          <el-form-item
+            label="用户名"
+            prop="username"
+          >
+            <el-input v-model="loginForm.username"></el-input>
+          </el-form-item>
+          <el-form-item
+            label="密码"
+            prop="password"
+          >
+            <el-input
+              v-model="loginForm.password"
+              show-password
+            ></el-input>
+          </el-form-item>
 
-      <el-form-item>
-        <el-button type="primary" @click="submitForm">登录</el-button>
-        <el-button @click="resetForm('loginForm')">重置</el-button>
-      </el-form-item>
-    </el-form>
+          <el-form-item>
+            <el-button
+              type="primary"
+              @click="submitForm"
+            >登录</el-button>
+            <el-button @click="resetForm('loginForm')">重置</el-button>
+          </el-form-item>
+        </el-form>
       </el-col>
     </el-row>
-    
+
   </div>
 </template>
 
 <script>
 import axios from "axios";
+import Qs from 'qs'
 export default {
   data() {
     return {
@@ -45,14 +76,19 @@ export default {
   methods: {
     //登录功能
     login() {
+        
+        var a = Qs.stringify(this.loginForm);
+   
       axios
-        .post("http://localhost:8888/api/private/v1/login", this.loginForm)
-        .then(res => {
+        .post("http://localhost:8888/api/private/v1/login", a, {headers:{'Content-Type':'application/x-www-form-urlencoded'}})
+        .then(
+          
+          res => {
           const { data, meta } = res.data;
           console.log(data, meta);
           if (meta.status === 200) {
             alert("登录成功");
-            localStorage.setItem('token',data.token)
+            localStorage.setItem("token", data.token);
             this.$router.push("/home");
           } else {
             this.$message({
@@ -82,16 +118,16 @@ export default {
 
 <style>
 .login-wrapper,
-.loginForm{
-    height: 100%;
+.loginForm {
+  height: 100%;
 }
-.loginForm{
-    background-color:#2D434C;
+.loginForm {
+  background-color: #2d434c;
 }
-.login-content{
-    min-width: 240px;
-    background-color: #fff;
-    padding: 20px 35px;
-    border-radius: 10px;
+.login-content {
+  min-width: 240px;
+  background-color: #fff;
+  padding: 20px 35px;
+  border-radius: 10px;
 }
 </style>
