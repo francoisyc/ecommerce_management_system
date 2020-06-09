@@ -53,7 +53,7 @@
 
 <script>
 import axios from "axios";
-import Qs from 'qs'
+import Qs from "qs";
 export default {
   data() {
     return {
@@ -75,15 +75,10 @@ export default {
   },
   methods: {
     //登录功能
-    login() {
-        
-        var a = Qs.stringify(this.loginForm);
-   
-      axios
-        .post("http://localhost:8888/api/private/v1/login", a, {headers:{'Content-Type':'application/x-www-form-urlencoded'}})
-        .then(
+    async login() {
+      const res = await axios.post("http://localhost:8888/api/private/v1/login", this.loginForm)
+          console.log(res);
           
-          res => {
           const { data, meta } = res.data;
           console.log(data, meta);
           if (meta.status === 200) {
@@ -97,7 +92,7 @@ export default {
               duration: 1000
             });
           }
-        });
+        
     },
     submitForm() {
       this.$refs.loginForm.validate(valid => {
