@@ -256,6 +256,7 @@ export default {
       },
       userEditDialog: false,
       userEditForm: {
+        id:-1,
         username: "",
         email: "",
         mobile: ""
@@ -265,7 +266,7 @@ export default {
           {
             pattern: /^(0|86|17951)?(13[0-9]|15[012356789]|166|17[3678]|18[0-9]|14[57])[0-9]{8}$/,
             message: "手机号码格式不正确",
-            trigger: "blur"
+            trigger: "change"
           }
         ]
       }
@@ -361,10 +362,22 @@ export default {
     },
     
     editUser(){
-        this.$refs.userEditForm.validate(valid => {
-            if(valid){
-
-            }else{
+              this.$refs.userEditForm.validate(valid => {
+                if(valid){
+                  const {id,email,mobile} = this.userEditForm
+                  this.$http.put(`/users/${this.userEditForm.id}`,{
+                    email,
+                    mobile}).then(res => {
+                      const{data,meta} = res.data
+                      if(meta.status === 200){
+                        const index = this.userList.find(item => item.id === id)
+                        editUser.email = data.email
+                        editUser.mobile = data.mobile
+                        this.userEditDialog = false
+                  
+                      }
+                    })
+                }else{
 
             }
         })
