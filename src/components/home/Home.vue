@@ -27,36 +27,38 @@
     </el-header>
     <el-container>
       <el-aside width="200px">
+        <!-- :router是用来控制是否开启路由模式，如果开启了，下面的index就是路径 -->
         <el-menu
-          default-active="1-2"
-          class="el-menu-vertical-demo"
-          @open="handleOpen"
-          @close="handleClose"
+          :default-active="handlePath()"
           background-color="#545c64"
           text-color="#fff"
           active-text-color="#ffd04b"
-          :router="true"
+          :router="true"    
         >
-          <el-submenu index="1">
+          <el-submenu :index="item1.id+''" v-for="item1 in menusData" :key="item1.id">
             <template slot="title">
               <i class="el-icon-location"></i>
-              <span>用户管理</span>
+              <span>{{item1.authName}}</span>
             </template>
-            <el-menu-item index="users">
+            <el-menu-item :index="item2.path" v-for="item2 in item1.children" :key="item2.id">
               <template slot="title">
                 <i class="el-icon-menu"></i>
-                <span>用户列表</span>
+                <span>{{item2.authName}}</span>
               </template>
             </el-menu-item>
-            <el-menu-item index="1-2"><template slot="title">
-                <i class="el-icon-menu"></i>
-                <span>用户列表</span>
-              </template></el-menu-item>
           </el-submenu>
+          <el-submenu index="2"><template slot="title">
+              <i class="el-icon-menu"></i>
+              <span>权限管理</span>
+            </template>
+            <el-menu-item index="/home/roles">角色列表</el-menu-item>
+            <el-menu-item index="/home/rights">权限列表</el-menu-item>
+          </el-submenu>
+          
         </el-menu>
       </el-aside>
       <el-main>
-          <router-view></router-view>
+        <router-view></router-view>
       </el-main>
     </el-container>
   </el-container>
@@ -64,6 +66,14 @@
 
 <script>
 export default {
+  data(){
+    return {
+      menusData:[]
+    }
+  },
+  created(){
+    this.loadLeftMenusData()
+  },
   methods: {
     logout() {
       this.$confirm("您是否确定退出？", "提示", {
@@ -77,12 +87,15 @@ export default {
         })
         .catch(() => {});
     },
-    handleOpen(key, keyPath) {
-        console.log(key, keyPath);
-      },
-      handleClose(key, keyPath) {
-        console.log(key, keyPath);
-      }
+    async loadLeftMenusData(){
+      let res = await this.$http.get("menus")
+      this.menusData = res.data.data
+    },
+    handlePath(){
+      let path =  this.$route.path
+      return path.slice(1)
+    }
+   
   }
 };
 </script>
@@ -127,7 +140,6 @@ export default {
   .el-main {
     background-color: #e9eef3;
     color: #333;
-    
   }
 
   .el-container:nth-child(5) .el-aside,

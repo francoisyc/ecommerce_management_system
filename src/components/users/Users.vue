@@ -87,6 +87,7 @@
             plain
             size="mini"
             icon="el-icon-check"
+            @click="showAssignRoleDialog(scope.row)"
           >分配角色</el-button>
         </template>
       </el-table-column>
@@ -110,29 +111,31 @@
         :model="userAddForm"
         :rules='userAddRules'
         ref="userAddForm"
+       
       >
         <el-form-item
           label="用户名"
           label-width="120px"
+          prop="username"
         >
           <el-input
             v-model="userAddForm.username"
             autocomplete="off"
           ></el-input>
         </el-form-item>
-      </el-form>
-      <el-form :model="form">
+      
+     
         <el-form-item
           label="密码"
           label-width="120px"
+          prop="password"
         >
           <el-input
             v-model="userAddForm.password"
             autocomplete="off"
           ></el-input>
         </el-form-item>
-      </el-form>
-      <el-form :model="form">
+     
         <el-form-item
           label="邮箱"
           label-width="120px"
@@ -142,8 +145,8 @@
             autocomplete="off"
           ></el-input>
         </el-form-item>
-      </el-form>
-      <el-form :model="form">
+      
+     
         <el-form-item
           label="手机"
           label-width="120px"
@@ -159,14 +162,14 @@
         slot="footer"
         class="dialog-footer"
       >
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button @click="userAddDialog = false">取 消</el-button>
         <el-button
           type="primary"
           @click="addUser"
         >确 定</el-button>
       </div>
     </el-dialog>
-
+     <!-- 编辑用户对话框 -->
     <el-dialog
       title="编辑用户"
       :visible.sync="userEditDialog"
@@ -188,7 +191,7 @@
           ></el-input>
         </el-form-item>
       </el-form>
-      <el-form :model="form">
+      <el-form :model="userEditForm">
         <el-form-item
           label="邮箱"
           label-width="120px"
@@ -199,7 +202,7 @@
           ></el-input>
         </el-form-item>
       </el-form>
-      <el-form :model="form">
+      <el-form :model="userEditForm">
         <el-form-item
           label="手机"
           label-width="120px"
@@ -215,13 +218,32 @@
         slot="footer"
         class="dialog-footer"
       >
-        <el-button @click="dialogFormVisible = false">取 消</el-button>
+        <el-button @click="userEditDialog = false">取 消</el-button>
         <el-button
           type="primary"
           @click="editUser"
         >确 定</el-button>
       </div>
     </el-dialog>
+
+    <!-- 分配角色 -->
+    <el-dialog title="分配角色" :visible.sync="dialogAssignRoleVisible">
+  <el-form :model="assignRoleForm" label-width="80px">
+    <el-form-item label="用户名">
+     <el-tag>{{assignRoleForm.username}}</el-tag>
+    </el-form-item>
+    <el-form-item label="角色列表">
+      <el-select v-model="assignRoleForm.rid" placeholder="请选择角色">
+        <el-option v-for="item in rolesData" :key="item.id" :label="item.roleName" :value="item.id"></el-option>
+     
+      </el-select>
+    </el-form-item>
+  </el-form>
+  <div slot="footer" class="dialog-footer">
+    <el-button @click="dialogFormVisible = false">取 消</el-button>
+    <el-button type="primary"  @click="assignRole">确 定</el-button>
+  </div>
+</el-dialog>
   </div>
 </template>
 
@@ -229,6 +251,7 @@
 export default {
   created() {
     this.getUserList();
+    this.loadRolesData()
   },
   data() {
     return {
@@ -255,8 +278,9 @@ export default {
         ]
       },
       userEditDialog: false,
+
       userEditForm: {
-        id:-1,
+        id: -1,
         username: "",
         email: "",
         mobile: ""
@@ -269,7 +293,11 @@ export default {
             trigger: "change"
           }
         ]
-      }
+      },
+      dialogAssignRoleVisible:false,
+      assignRoleForm:{
+        
+      },
     };
   },
   methods: {
@@ -281,7 +309,6 @@ export default {
         })
         .then(res => {
           console.log(res);
-
           const { meta, data } = res.data;
           if (meta.status === 200) {
             this.userList = data.users;
@@ -354,36 +381,66 @@ export default {
           });
         });
     },
-    showUserEditDialog(curUser){
-         for(const key in this.userEditForm){
-             this.userEditForm[key] = curUser[key]
-        }
-        this.userEditDialog = true
+    showUserEditDialog(curUser) {
+      for (const key in this.userEditForm) {
+        this.userEditForm[key] = curUser[key];
+      }
+      this.userEditDialog = true;
     },
-    
-    editUser(){
-              this.$refs.userEditForm.validate(valid => {
-                if(valid){
-                  const {id,email,mobile} = this.userEditForm
-                  this.$http.put(`/users/${this.userEditForm.id}`,{
-                    email,
-                    mobile}).then(res => {
-                      const{data,meta} = res.data
-                      if(meta.status === 200){
-                        const index = this.userList.find(item => item.id === id)
-                        editUser.email = data.email
-                        editUser.mobile = data.mobile
-                        this.userEditDialog = false
-                  
-                      }
-                    })
-                }else{
 
-            }
-        })
+    editUser() {
+      this.$refs.userEditForm.validate(valid => {
+        if (valid) {
+          const { id, email, mobile } = this.userEditForm;
+          this.$http
+            .put(`/users/${this.userEditForm.id}`, {
+              email,
+              mobile
+            })
+            .then(res => {
+              const { data, meta } = res.data;
+              if (meta.status === 200) {
+                const editUser = this.userList.find(item => item.id === id);
+                editUser.email = data.email;
+                editUser.mobile = data.mobile;
+                this.userEditDialog = false;
+              }
+            });
+        } else {
+        }
+      });
     },
-    closeUserEditDialog(){
-        this.$refs.userEditForm.resetFields()
+    closeUserEditDialog() {
+      this.$refs.userEditForm.resetFields();
+    },
+    async loadRolesData(){
+      let res = await this.$http.get('roles')
+      this.rolesData = res.data.data
+    },
+    async showAssignRoleDialog(row){
+      this.dialogAssignRoleVisible = true
+      const { username,id } = row
+      this.assignRoleForm.username = username
+      this.assignRoleForm.id = id
+      let res =  await this.$http.get(`users/${id}`)
+      this.assignRoleForm.rid = res.data.data.rid == -1 ? "" : res.data.data.rid
+      
+    },
+    async assignRole(){
+      const {id,rid} = this.assignRoleForm
+      let res = await this.$http.put(`user/:id/role`,{
+        rid
+      })
+      if(res.data.meta.status === 200){
+        this.dialogAssignRoleVisible = false
+        this.$message({
+          message:"分配成功",
+          type:"success",
+          duration:1000
+        })
+        this.loadUserData(this.pagenum)
+
+      }
     }
   }
 };

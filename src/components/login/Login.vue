@@ -75,12 +75,11 @@ export default {
   },
   methods: {
     //登录功能
-    async login() {
-      const res = await axios.post("http://localhost:8888/api/private/v1/login", this.loginForm)
-          console.log(res);
-          
+    login() {
+      axios
+        .post("http://localhost:8888/api/private/v1/login", this.loginForm)
+        .then(res => {
           const { data, meta } = res.data;
-          console.log(data, meta);
           if (meta.status === 200) {
             alert("登录成功");
             localStorage.setItem("token", data.token);
@@ -92,7 +91,7 @@ export default {
               duration: 1000
             });
           }
-        
+        });
     },
     submitForm() {
       this.$refs.loginForm.validate(valid => {
